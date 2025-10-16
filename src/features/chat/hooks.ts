@@ -79,6 +79,7 @@ function updateConversationMessages(queryClient: QueryClient, message: Message) 
               messages: [...conversation.messages, message],
               lastMessagePreview: message.body,
               lastMessageAt: message.sentAt,
+              updatedAt: message.updatedAt,
               unreadCount: 0,
               status: conversation.status === "pending" ? "open" : conversation.status
             }
@@ -100,7 +101,7 @@ function markMessagesAsRead(queryClient: QueryClient, conversationId: string) {
         const updatedMessages = conversation.messages.map((message) => {
           if (message.status == null) {
             hasChanges = true;
-            return { ...message, status: "read" };
+            return { ...message, status: "read", updatedAt: new Date().toISOString() };
           }
           return message;
         });
@@ -109,10 +110,12 @@ function markMessagesAsRead(queryClient: QueryClient, conversationId: string) {
           return conversation;
         }
 
+        const latestUpdatedAt = updatedMessages.at(-1)?.updatedAt ?? conversation.updatedAt;
         return {
           ...conversation,
           messages: updatedMessages,
-          unreadCount: 0
+          unreadCount: 0,
+          updatedAt: latestUpdatedAt
         };
       })
   );

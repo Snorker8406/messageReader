@@ -8,7 +8,8 @@ interface ServerChatHistory {
   sessionId: string;
   phone: string;
   type: string;
-  createdAt?: string;
+  createdAt: string;
+  updatedAt: string;
   status?: string;
   message: {
     content?: unknown;
@@ -107,6 +108,7 @@ function toConversation(sessionId: string, items: ServerChatHistory[]): Conversa
     ],
     lastMessagePreview: parsed?.respuesta ?? describeContent(latest),
     lastMessageAt: latest?.createdAt ?? new Date().toISOString(),
+  updatedAt: latest?.updatedAt ?? latest?.createdAt ?? new Date().toISOString(),
     unreadCount: 0,
     priority: parsed?.isPedido ? "high" : "normal",
     status: latest?.status === "closed" ? "closed" : "open",
@@ -141,6 +143,7 @@ function toMessage(
       ? parsed?.respuesta ?? describeContent(item)
       : parsed?.pedido || parsed?.respuesta || describeContent(item),
     sentAt: item.createdAt ?? new Date(Date.now() - index * 60_000).toISOString(),
+    updatedAt: item.updatedAt ?? item.createdAt ?? new Date(Date.now() - index * 60_000).toISOString(),
     channel: "whatsapp",
     deliveryStatus: isAgent ? "delivered" : "read",
     status: item.status ?? null
@@ -154,7 +157,7 @@ function buildSubject(parsed: ServerChatHistory["parsedContent"], sessionId: str
   if (parsed?.error && parsed.error.length > 0) {
     return `Seguimiento pendiente (${parsed.error})`;
   }
-  return `Conversación ${sessionId}`;
+  return `Conversación ${parsed?.cliente ?? sessionId.slice(3)}`;
 }
 
 function describeContent(item: ServerChatHistory | undefined): string {

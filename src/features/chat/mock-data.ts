@@ -20,6 +20,7 @@ const message = (props: Partial<Message>): Message => ({
   authorType: props.authorType ?? "customer",
   body: props.body ?? "",
   sentAt: props.sentAt ?? new Date().toISOString(),
+  updatedAt: props.updatedAt ?? props.sentAt ?? new Date().toISOString(),
   attachments: props.attachments,
   channel: props.channel ?? "whatsapp",
   deliveryStatus: props.deliveryStatus ?? "read"
@@ -32,6 +33,7 @@ export const mockConversations: ConversationWithMessages[] = [
     participants: [customers[0], agents[0]],
     lastMessagePreview: "¿Cuándo llegará mi pedido?",
     lastMessageAt: subMinutes(new Date(), 12).toISOString(),
+    updatedAt: subMinutes(new Date(), 12).toISOString(),
     unreadCount: 2,
     priority: "high",
     status: "open",
@@ -46,6 +48,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "customer",
         body: "Hola, hice un pedido ayer y aún no tengo novedades.",
         sentAt: subHours(new Date(), 2).toISOString(),
+        updatedAt: subHours(new Date(), 2).toISOString(),
         channel: "whatsapp"
       }),
       message({
@@ -55,6 +58,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "agent",
         body: "Hola María, ya consulto con logística y te confirmo.",
         sentAt: subMinutes(new Date(), 50).toISOString(),
+        updatedAt: subMinutes(new Date(), 50).toISOString(),
         channel: "whatsapp"
       }),
       message({
@@ -64,6 +68,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "customer",
         body: "Gracias, quedo atenta.",
         sentAt: subMinutes(new Date(), 12).toISOString(),
+        updatedAt: subMinutes(new Date(), 12).toISOString(),
         channel: "whatsapp",
         deliveryStatus: "delivered"
       })
@@ -75,6 +80,7 @@ export const mockConversations: ConversationWithMessages[] = [
     participants: [customers[1], agents[1]],
     lastMessagePreview: "Te paso la factura en PDF",
     lastMessageAt: subMinutes(new Date(), 5).toISOString(),
+    updatedAt: subMinutes(new Date(), 5).toISOString(),
     unreadCount: 0,
     priority: "normal",
     status: "pending",
@@ -89,6 +95,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "customer",
         body: "Buen día, necesito la factura de la compra #4532.",
         sentAt: subHours(new Date(), 4).toISOString(),
+        updatedAt: subHours(new Date(), 4).toISOString(),
         channel: "email"
       }),
       message({
@@ -98,6 +105,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "agent",
         body: "Hola Juan, aquí tienes la factura en PDF adjunta.",
         sentAt: subMinutes(new Date(), 5).toISOString(),
+        updatedAt: subMinutes(new Date(), 5).toISOString(),
         channel: "email"
       })
     ]
@@ -108,6 +116,7 @@ export const mockConversations: ConversationWithMessages[] = [
     participants: [customers[2], agents[0]],
     lastMessagePreview: "El producto tiene 12 meses de garantía.",
     lastMessageAt: subHours(new Date(), 5).toISOString(),
+    updatedAt: subHours(new Date(), 5).toISOString(),
     unreadCount: 0,
     priority: "normal",
     status: "closed",
@@ -122,6 +131,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "customer",
         body: "¿Cuál es la garantía del modelo X200?",
         sentAt: subHours(new Date(), 6).toISOString(),
+        updatedAt: subHours(new Date(), 6).toISOString(),
         channel: "messenger"
       }),
       message({
@@ -131,6 +141,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "agent",
         body: "Tiene 12 meses de garantía oficial.",
         sentAt: subHours(new Date(), 5).toISOString(),
+        updatedAt: subHours(new Date(), 5).toISOString(),
         channel: "messenger"
       })
     ]
@@ -141,6 +152,7 @@ export const mockConversations: ConversationWithMessages[] = [
     participants: [customers[0], agents[1]],
     lastMessagePreview: "Tu devolución se procesó con éxito",
     lastMessageAt: addMinutes(new Date(), -90).toISOString(),
+    updatedAt: addMinutes(new Date(), -90).toISOString(),
     unreadCount: 1,
     priority: "high",
     status: "snoozed",
@@ -155,6 +167,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "customer",
         body: "Quería saber si recibieron el producto devuelto.",
         sentAt: subHours(new Date(), 10).toISOString(),
+        updatedAt: subHours(new Date(), 10).toISOString(),
         channel: "sms"
       }),
       message({
@@ -164,6 +177,7 @@ export const mockConversations: ConversationWithMessages[] = [
         authorType: "agent",
         body: "Sí, lo recibimos. Estamos procesando el reintegro.",
         sentAt: subHours(new Date(), 3).toISOString(),
+        updatedAt: subHours(new Date(), 3).toISOString(),
         channel: "sms"
       })
     ]
@@ -191,6 +205,7 @@ export function simulateSendMessage(
         authorType: "agent",
         body,
         sentAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         channel: "whatsapp"
       });
       resolve(messagePayload);

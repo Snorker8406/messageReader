@@ -17,7 +17,7 @@ export async function fetchChatHistories({
   sessionId,
   limit
 }: FetchChatHistoryOptions): Promise<ChatHistoryItem[]> {
-  const { data, error } = await buildQuery("id, session_id, message, status", {
+  const { data, error } = await buildQuery("id, session_id, message, status, created_at, updated_at", {
     sessionId,
     limit
   });
@@ -87,6 +87,7 @@ function normalizeChatHistory(row: ChatHistoryRow): ChatHistoryItem {
     type: typeof message.type === "string" ? message.type : "unknown",
     message,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
     status: row.status,
     parsedContent
   };

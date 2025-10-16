@@ -16,6 +16,7 @@ export interface Message {
   authorType: "agent" | "customer";
   body: string;
   sentAt: string;
+  updatedAt: string;
   attachments?: Array<{ id: string; name: string; url: string }>;
   channel: Channel;
   deliveryStatus: "sent" | "delivered" | "read";
@@ -28,6 +29,7 @@ export interface Conversation {
   participants: Participant[];
   lastMessagePreview: string;
   lastMessageAt: string;
+  updatedAt: string;
   unreadCount: number;
   priority: Priority;
   status: ConversationStatus;

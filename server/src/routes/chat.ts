@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { fetchChatHistories } from "../chat-service";
+import { fetchChatHistories, markConversationMessagesRead } from "../chat-service";
 
 export const chatRouter = Router();
 
@@ -31,6 +31,19 @@ chatRouter.get("/:sessionId", async (request, response) => {
     console.error(`Failed to fetch session ${request.params.sessionId}`, error);
     response.status(500).json({
       error: "Failed to fetch chat histories"
+    });
+  }
+});
+
+chatRouter.patch("/:sessionId/read", async (request, response) => {
+  try {
+    const { sessionId } = request.params;
+    const updatedCount = await markConversationMessagesRead(sessionId);
+    response.json({ data: { updatedCount } });
+  } catch (error) {
+    console.error(`Failed to mark session ${request.params.sessionId} messages as read`, error);
+    response.status(500).json({
+      error: "Failed to update message status"
     });
   }
 });

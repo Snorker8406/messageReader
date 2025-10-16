@@ -54,6 +54,19 @@ export async function sendAgentReply(
   return simulateSendMessage(conversationId, body);
 }
 
+export async function markConversationAsRead(conversationId: string): Promise<number> {
+  const response = await fetch(`${API_BASE_URL}/api/chat-histories/${conversationId}/read`, {
+    method: "PATCH"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to mark conversation ${conversationId} as read`);
+  }
+
+  const payload = (await response.json()) as { data?: { updatedCount?: number } };
+  return payload.data?.updatedCount ?? 0;
+}
+
 function fromServerHistories(histories: ServerChatHistory[]): ConversationWithMessages[] {
   const grouped = new Map<string, ServerChatHistory[]>();
 

@@ -30,6 +30,26 @@ export async function fetchChatHistories({
   return rows.map(normalizeChatHistory);
 }
 
+export async function markConversationMessagesRead(sessionId: string): Promise<number> {
+  const normalizedSessionId = sessionId.trim();
+  if (!normalizedSessionId) {
+    throw new Error("Session ID is required to mark messages as read");
+  }
+
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .update({ status: "read" })
+    .eq("session_id", normalizedSessionId)
+    .is("status", null)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to update message status: ${error.message}`);
+  }
+
+  return data?.length ?? 0;
+}
+
 function buildQuery(
   columns: string,
   options: FetchChatHistoryOptions

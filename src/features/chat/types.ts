@@ -19,6 +19,7 @@ export interface Message {
   attachments?: Array<{ id: string; name: string; url: string }>;
   channel: Channel;
   deliveryStatus: "sent" | "delivered" | "read";
+  status?: string | null;
 }
 
 export interface Conversation {

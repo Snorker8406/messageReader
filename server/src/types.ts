@@ -3,6 +3,7 @@ export interface ChatHistoryRow {
   session_id: string;
   message: ChatHistoryMessage;
   created_at?: string;
+  status?: string;
 }
 
 export interface ChatHistoryMessage {
@@ -33,5 +34,6 @@ export interface ChatHistoryItem {
   type: string;
   message: ChatHistoryMessage;
   createdAt?: string;
+  status?: string;
   parsedContent?: ParsedMessageContent;
 }

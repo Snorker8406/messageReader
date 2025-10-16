@@ -17,7 +17,7 @@ export async function fetchChatHistories({
   sessionId,
   limit
 }: FetchChatHistoryOptions): Promise<ChatHistoryItem[]> {
-  const { data, error } = await buildQuery("id, session_id, message", {
+  const { data, error } = await buildQuery("id, session_id, message, status", {
     sessionId,
     limit
   });
@@ -67,6 +67,7 @@ function normalizeChatHistory(row: ChatHistoryRow): ChatHistoryItem {
     type: typeof message.type === "string" ? message.type : "unknown",
     message,
     createdAt: row.created_at,
+    status: row.status,
     parsedContent
   };
 }
@@ -81,13 +82,19 @@ function parseContent(content: unknown): ParsedMessageContent | undefined {
   }
 
   if (typeof content === "string") {
-    try {
-      const parsed = JSON.parse(content) as ParsedMessageContent | { output?: ParsedMessageContent };
-      return extractPayload(parsed);
-    } catch (error) {
-      console.warn("Failed to parse message.content", error);
-      return undefined;
+    const trimmed = content.trim();
+
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(trimmed) as ParsedMessageContent | { output?: ParsedMessageContent };
+        return extractPayload(parsed);
+      } catch (error) {
+        console.warn("Failed to parse message.content", error);
+        return { respuesta: content } as ParsedMessageContent;
+      }
     }
+
+    return { respuesta: content } as ParsedMessageContent;
   }
 
   return undefined;

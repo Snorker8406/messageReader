@@ -9,6 +9,7 @@ interface ServerChatHistory {
   phone: string;
   type: string;
   createdAt?: string;
+  status?: string;
   message: {
     content?: unknown;
     [key: string]: unknown;
@@ -95,7 +96,7 @@ function toConversation(sessionId: string, items: ServerChatHistory[]): Conversa
     lastMessageAt: latest?.createdAt ?? new Date().toISOString(),
     unreadCount: 0,
     priority: parsed?.isPedido ? "high" : "normal",
-    status: "open",
+    status: latest?.status === "closed" ? "closed" : "open",
     tags: buildTags(parsed),
     channel: "whatsapp",
     assignedTo: {
@@ -128,7 +129,8 @@ function toMessage(
       : parsed?.pedido || parsed?.respuesta || describeContent(item),
     sentAt: item.createdAt ?? new Date(Date.now() - index * 60_000).toISOString(),
     channel: "whatsapp",
-    deliveryStatus: isAgent ? "delivered" : "read"
+    deliveryStatus: isAgent ? "delivered" : "read",
+    status: item.status ?? null
   };
 }
 

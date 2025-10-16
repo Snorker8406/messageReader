@@ -133,14 +133,17 @@ export function ConversationList({ conversations, isLoading }: ConversationListP
           <ul className="space-y-1 px-2 pb-4">
             {filteredConversations.map((conversation) => {
               const isActive = conversation.id === selectedConversationId;
+              const latestMessage = conversation.messages.at(-1);
+              const isUnread = latestMessage?.status == null;
               return (
                 <li key={conversation.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedConversationId(conversation.id)}
                     className={cn(
-                      "flex w-full flex-col gap-1 rounded-xl p-3 text-left transition hover:bg-muted",
-                      isActive && "bg-muted"
+                      "flex w-full flex-col gap-1 rounded-xl border border-transparent p-3 text-left transition hover:bg-muted",
+                      isActive && "border-primary bg-muted",
+                      !isActive && isUnread && "bg-sky-50"
                     )}
                   >
                     <div className="flex items-start justify-between">

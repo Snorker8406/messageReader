@@ -56,8 +56,7 @@ function buildQuery(
 ) {
   let query = supabase
     .from(TABLE_NAME)
-    .select(columns)
-    .order("id", { ascending: false });
+    .select(columns);
 
   if (options.sessionId) {
     query = query.eq("session_id", options.sessionId.trim());

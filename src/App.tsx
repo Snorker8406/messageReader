@@ -36,7 +36,7 @@ function App() {
         <section className="hidden overflow-hidden rounded-xl border lg:block">
           <ConversationList conversations={conversations} isLoading={isLoading} />
         </section>
-        <section className="min-h-[70vh] overflow-hidden rounded-xl border bg-card">
+        <section className="min-h-[70vh] rounded-xl border bg-card">
           <ConversationDetail conversations={conversations} isLoading={isLoading} />
         </section>
       </main>

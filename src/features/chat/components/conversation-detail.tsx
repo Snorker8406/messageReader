@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 import type { ConversationWithMessages } from "../types";
 import { useChatStore } from "../store";
@@ -94,7 +95,7 @@ export function ConversationDetail({ conversations = [], isLoading }: Conversati
       </div>
 
       <div className="grid flex-1 gap-4 overflow-hidden p-6 lg:grid-cols-[2fr_1fr]">
-        <Card className="flex flex-1 flex-col">
+        <Card id="activity" className="flex flex-1 flex-col" style={{ maxHeight: "72vh" }}>
           <CardHeader className="flex-none pb-2">
             <CardTitle className="text-base font-semibold">Actividad reciente</CardTitle>
           </CardHeader>
@@ -107,21 +108,44 @@ export function ConversationDetail({ conversations = [], isLoading }: Conversati
                     ? assignedAgent?.name ?? "Agente"
                     : primaryCustomer?.name ?? "Cliente";
                   return (
-                    <li key={message.id} className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
+                    <li
+                      key={message.id}
+                      className={cn(
+                        "flex w-full flex-col gap-2",
+                        isAgent ? "items-end" : "items-start"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex items-center gap-3",
+                          isAgent && "flex-row-reverse"
+                        )}
+                      >
                         <Avatar className="h-9 w-9">
                           <AvatarFallback>
                             {(displayName?.[0] ?? "?").toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "flex flex-col gap-0.5",
+                            isAgent ? "items-end text-right" : "items-start text-left"
+                          )}
+                        >
                           <p className="text-sm font-medium leading-none">{displayName}</p>
                           <span className="text-xs text-muted-foreground">
                             {format(new Date(message.sentAt), "PPpp", { locale: es })}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-11 rounded-2xl bg-muted p-3 text-sm leading-relaxed text-muted-foreground">
+                      <div
+                        className={cn(
+                          "max-w-[80%] rounded-2xl p-3 text-sm leading-relaxed shadow-sm",
+                          isAgent
+                            ? "self-end bg-primary text-primary-foreground"
+                            : "self-start bg-muted text-muted-foreground"
+                        )}
+                      >
                         {message.body}
                       </div>
                     </li>

@@ -1,3 +1,44 @@
+export interface AppUserRow {
+  id: string;
+  email: string;
+  password_hash: string;
+  full_name: string | null;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppUser {
+  id: string;
+  email: string;
+  fullName: string | null;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AppUserRecord = Omit<AppUserRow, "password_hash">;
+
+export interface AuthTokenPayload {
+  sub: string;
+  email: string;
+  role: string;
+  fullName?: string | null;
+  isActive?: boolean;
+  iat?: number;
+  exp?: number;
+}
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: string;
+  fullName: string | null;
+  isActive: boolean;
+}
+
 export interface ChatHistoryRow {
   id: number;
   session_id: string;

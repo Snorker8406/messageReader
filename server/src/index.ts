@@ -1,22 +1,62 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import type { NextFunction, Request, Response } from "express";
 
 import { env } from "./env";
+import { requireAuth } from "./middleware/authenticate";
+import { authRouter } from "./routes/auth";
 import { chatRouter } from "./routes/chat";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = env.clientUrl
+  .split(",")
+  .map((value) => value.trim())
+  .filter((value) => value.length > 0);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true
+  })
+);
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/api/health", (_request, response) => {
   response.json({ status: "ok" });
 });
 
-app.use("/api/chat-histories", chatRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/chat-histories", requireAuth, chatRouter);
+
+app.use((error: unknown, _request: Request, response: Response, next: NextFunction) => {
+  if (error instanceof Error && /not allowed by CORS/i.test(error.message)) {
+    return response.status(403).json({ error: "Origen no permitido" });
+  }
+
+  return next(error);
+});
 
 app.use((request, response) => {
   response.status(404).json({ error: `Not found: ${request.path}` });
+});
+
+app.use((error: unknown, _request: Request, response: Response, _next: NextFunction) => {
+  void _next;
+  console.error("Unhandled server error", error);
+  response.status(500).json({ error: "Error interno del servidor" });
 });
 
 app.listen(env.port, () => {

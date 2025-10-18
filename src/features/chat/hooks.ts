@@ -7,19 +7,24 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 
+import { useAuthStore } from "@/features/auth/store";
+
 import { fetchConversations, markConversationAsRead, sendAgentReply } from "./api";
 import type { ConversationWithMessages, Message } from "./types";
 import { useChatStore } from "./store";
 
-const conversationsKey = ["conversations"] as const;
+export const conversationsKey = ["conversations"] as const;
 
 export function useConversations() {
   const queryClient = useQueryClient();
   const selectedConversationId = useChatStore((state) => state.selectedConversationId);
   const setSelectedConversationId = useChatStore((state) => state.setSelectedConversationId);
+  const authStatus = useAuthStore((state) => state.status);
+  const isAuthenticated = authStatus === "authenticated";
   const { data, ...rest } = useQuery({
     queryKey: conversationsKey,
-    queryFn: fetchConversations
+    queryFn: fetchConversations,
+    enabled: isAuthenticated
   });
   const { mutate: markAsRead, isPending: isMarkingRead } = useMutation({
     mutationFn: (conversationId: string) => markConversationAsRead(conversationId),
@@ -29,14 +34,21 @@ export function useConversations() {
   });
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      if (selectedConversationId !== null) {
+        setSelectedConversationId(null);
+      }
+      return;
+    }
+
     if (!data?.length || selectedConversationId) {
       return;
     }
     setSelectedConversationId(data[0].id);
-  }, [data, selectedConversationId, setSelectedConversationId]);
+  }, [data, selectedConversationId, setSelectedConversationId, isAuthenticated]);
 
   useEffect(() => {
-    if (!data || !selectedConversationId || isMarkingRead) {
+    if (!isAuthenticated || !data || !selectedConversationId || isMarkingRead) {
       return;
     }
 
@@ -49,7 +61,7 @@ export function useConversations() {
     if (hasUnread) {
       markAsRead(selectedConversationId);
     }
-  }, [data, selectedConversationId, isMarkingRead, markAsRead]);
+  }, [data, selectedConversationId, isMarkingRead, markAsRead, isAuthenticated]);
 
   return { data, ...rest };
 }

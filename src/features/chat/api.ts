@@ -1,7 +1,6 @@
+import { API_BASE_URL } from "@/lib/api";
 import { loadMockConversations, simulateSendMessage } from "./mock-data";
 import type { Conversation, ConversationWithMessages, Message } from "./types";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:4000";
 
 interface ServerChatHistory {
   id: number;
@@ -29,8 +28,13 @@ interface ServerChatHistory {
 
 export async function fetchConversations(): Promise<ConversationWithMessages[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/chat-histories`);
+    const response = await fetch(`${API_BASE_URL}/api/chat-histories`, {
+      credentials: "include"
+    });
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Unauthorized");
+      }
       throw new Error(`Request failed with status ${response.status}`);
     }
 
@@ -43,6 +47,9 @@ export async function fetchConversations(): Promise<ConversationWithMessages[]> 
 
     return sortConversations(fromServerHistories(histories));
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      throw error;
+    }
     console.warn("Falling back to mock conversations", error);
     return sortConversations(await loadMockConversations());
   }
@@ -57,7 +64,8 @@ export async function sendAgentReply(
 
 export async function markConversationAsRead(conversationId: string): Promise<number> {
   const response = await fetch(`${API_BASE_URL}/api/chat-histories/${conversationId}/read`, {
-    method: "PATCH"
+    method: "PATCH",
+    credentials: "include"
   });
 
   if (!response.ok) {

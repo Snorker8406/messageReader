@@ -37,6 +37,7 @@
     "react-router-dom": "^7.5.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
+    "undici": "^6.19.8",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

@@ -76,6 +76,12 @@ CLIENT_APP_URL=http://localhost:5173
 JWT_SECRET=super-secreto-largo-y-unico
 SESSION_DURATION_DAYS=7
 SESSION_COOKIE_NAME=mr_session
+N8N_WHATSAPP_WEBHOOK_URL=https://n8n-boutique.duckdns.org/webhook-test/send-whatsapp
+N8N_WHATSAPP_WEBHOOK_USER=MessageReaderApp
+N8N_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
+VITE_WHATSAPP_WEBHOOK_URL=https://n8n-boutique.duckdns.org/webhook-test/send-whatsapp
+VITE_WHATSAPP_WEBHOOK_USER=MessageReaderApp
+VITE_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
 ```
 
 Notas:
@@ -83,6 +89,10 @@ Notas:
 - `CLIENT_APP_URL` admite una lista separada por comas de orígenes permitidos (por ejemplo, `http://localhost:5173,https://mi-dominio.com`).
 - `JWT_SECRET` debe ser un valor aleatorio y seguro; el backend lo usa para firmar los tokens almacenados en la cookie HttpOnly.
 - `SESSION_DURATION_DAYS` y `SESSION_COOKIE_NAME` son opcionales (tienen valores por defecto 7 días y `mr_session`).
+- `N8N_WHATSAPP_WEBHOOK_URL` apunta al webhook de n8n que recibe los mensajes salientes. Si no se configura, el envío fallará con un error controlado.
+- `N8N_WHATSAPP_WEBHOOK_USER` y `N8N_WHATSAPP_WEBHOOK_PASSWORD` son opcionales; cuando se definen, el backend añadirá cabeceras Basic Auth en los reintentos hacia n8n.
+- `VITE_WHATSAPP_WEBHOOK_URL` permite que el cliente (browser) envíe directamente al webhook; si no se define, se usará el backend como proxy.
+- `VITE_WHATSAPP_WEBHOOK_USER` y `VITE_WHATSAPP_WEBHOOK_PASSWORD` habilitan Basic Auth también desde el cliente; si faltan, el navegador omitirá la cabecera y dependerá del backend.
 - El cliente web leerá opcionalmente `VITE_API_URL`; si no se define, apuntará a `http://localhost:4000`.
 
 En Supabase, crea la tabla `app_users` para respaldar el registro e inicio de sesión:
@@ -117,6 +127,7 @@ CREATE TABLE public.app_users (
 - `GET /api/chat-histories` — lista todos los mensajes agrupables por `sessionId` (requiere sesión válida).
 	- Parámetros opcionales: `sessionId` (filtra por número/canal), `limit`.
 - `GET /api/chat-histories/:sessionId` — historial del identificador específico (requiere sesión válida).
+- `POST /api/chat-histories/:sessionId/reply` — envía una respuesta al webhook configurado (`message` en el body) y devuelve un mensaje sintético para optimizar la UI.
 
 Las respuestas incluyen el JSON original almacenado en Supabase y un bloque `parsedContent` con los campos resumidos (`isPedido`, `pedido`, `volumen`, etc.) que la app usa para armar conversaciones.
 

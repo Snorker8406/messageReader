@@ -10,6 +10,16 @@ function required(name: string): string {
   return value;
 }
 
+function optional(name: string): string | null {
+  const value = process.env[name];
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
@@ -18,7 +28,10 @@ export const env = {
   clientUrl: required("CLIENT_APP_URL"),
   jwtSecret: required("JWT_SECRET"),
   sessionDurationDays: parsePositiveNumber(process.env.SESSION_DURATION_DAYS, 7),
-  sessionCookieName: process.env.SESSION_COOKIE_NAME ?? "mr_session"
+  sessionCookieName: process.env.SESSION_COOKIE_NAME ?? "mr_session",
+  n8nWhatsappWebhookUrl: optional("N8N_WHATSAPP_WEBHOOK_URL"),
+  n8nWhatsappWebhookUser: optional("N8N_WHATSAPP_WEBHOOK_USER"),
+  n8nWhatsappWebhookPassword: optional("N8N_WHATSAPP_WEBHOOK_PASSWORD")
 };
 
 function parsePositiveNumber(value: string | undefined, fallback: number): number {

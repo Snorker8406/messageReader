@@ -1,4 +1,10 @@
-import { API_BASE_URL } from "@/lib/api";
+import {
+  API_BASE_URL,
+  WHATSAPP_WEBHOOK_PASSWORD,
+  WHATSAPP_WEBHOOK_URL,
+  WHATSAPP_WEBHOOK_USER,
+  readApiError
+} from "@/lib/api";
 import { loadMockConversations, simulateSendMessage } from "./mock-data";
 import type { Conversation, ConversationWithMessages, Message } from "./types";
 
@@ -59,7 +65,86 @@ export async function sendAgentReply(
   conversationId: string,
   body: string
 ): Promise<Message> {
-  return simulateSendMessage(conversationId, body);
+  const trimmedBody = body.trim();
+  if (trimmedBody.length === 0) {
+    throw new Error("El mensaje no puede estar vacío");
+  }
+
+  if (WHATSAPP_WEBHOOK_URL) {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+
+      if (WHATSAPP_WEBHOOK_USER && WHATSAPP_WEBHOOK_PASSWORD) {
+        headers.Authorization = `Basic ${encodeBasicAuth(
+          WHATSAPP_WEBHOOK_USER,
+          WHATSAPP_WEBHOOK_PASSWORD
+        )}`;
+      }
+
+      const response = await fetch(WHATSAPP_WEBHOOK_URL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          conversationId,
+          message: trimmedBody
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          errorText?.length
+            ? errorText
+            : `Webhook request failed with status ${response.status}`
+        );
+      }
+
+      return createOptimisticAgentMessage(conversationId, trimmedBody);
+    } catch (error) {
+      console.warn("Failed to send message via configured webhook, falling back to API", error);
+    }
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chat-histories/${conversationId}/reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ message: trimmedBody })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      const errorMessage = await readApiError(response);
+      throw new Error(errorMessage || "Unauthorized");
+    }
+
+    if (!response.ok) {
+      const errorMessage = await readApiError(response);
+      throw new Error(errorMessage || `Request failed with status ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      data?: { message?: ServerAgentReply };
+    };
+
+    const serverMessage = payload.data?.message;
+    if (!serverMessage) {
+      throw new Error("Respuesta inválida del servidor");
+    }
+
+    return normalizeAgentReply(serverMessage);
+  } catch (error) {
+    if (error instanceof Error && /unauthorized/i.test(error.message)) {
+      throw error;
+    }
+
+    console.warn("Falling back to simulated sendMessage", error);
+    return simulateSendMessage(conversationId, trimmedBody);
+  }
 }
 
 export async function markConversationAsRead(conversationId: string): Promise<number> {
@@ -196,4 +281,71 @@ function sortConversations(conversations: ConversationWithMessages[]): Conversat
   return conversations.sort(
     (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
   );
+}
+
+interface ServerAgentReply {
+  id: string;
+  conversationId: string;
+  authorId: string;
+  authorType: "agent" | "customer";
+  body: string;
+  sentAt: string;
+  updatedAt: string;
+  channel: string;
+  deliveryStatus: "sent" | "delivered" | "read";
+  status?: string | null;
+  attachments?: Message["attachments"];
+}
+
+function normalizeAgentReply(reply: ServerAgentReply): Message {
+  return {
+    id: reply.id,
+    conversationId: reply.conversationId,
+    authorId: reply.authorId,
+    authorType: reply.authorType,
+    body: reply.body,
+    sentAt: reply.sentAt,
+    updatedAt: reply.updatedAt,
+    channel: reply.channel as Message["channel"],
+    deliveryStatus: reply.deliveryStatus,
+    status: reply.status ?? null,
+    attachments: reply.attachments ?? [],
+    // Ensure compatibility with existing UI defaults
+    // Additional fields can be expanded if backend sends more data
+  };
+}
+
+function createOptimisticAgentMessage(conversationId: string, message: string): Message {
+  const now = new Date().toISOString();
+  const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${conversationId}-${Date.now()}`;
+
+  return {
+    id,
+    conversationId,
+    authorId: "agent-cloud",
+    authorType: "agent",
+    body: message,
+    sentAt: now,
+    updatedAt: now,
+    channel: "whatsapp",
+    deliveryStatus: "sent",
+    status: "pending",
+    attachments: []
+  };
+}
+
+function encodeBasicAuth(username: string, password: string): string {
+  const raw = `${username}:${password}`;
+  if (typeof btoa === "function") {
+    return btoa(raw);
+  }
+  const maybeBuffer = (globalThis as Record<string, unknown>).Buffer as
+    | { from(data: string, encoding: string): { toString(encoding: string): string } }
+    | undefined;
+  if (maybeBuffer) {
+    return maybeBuffer.from(raw, "utf8").toString("base64");
+  }
+  throw new Error("Basic auth encoding is not supported in this environment");
 }

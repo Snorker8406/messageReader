@@ -21,6 +21,7 @@ export interface Message {
   channel: Channel;
   deliveryStatus: "sent" | "delivered" | "read";
   status?: string | null;
+  appState?: string | null;
 }
 
 export interface Conversation {

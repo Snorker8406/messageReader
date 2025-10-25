@@ -46,6 +46,7 @@ export interface ChatHistoryRow {
   created_at: string;
   updated_at: string;
   status?: string;
+  app_state?: string | null;
 }
 
 export interface ChatHistoryMessage {
@@ -78,5 +79,6 @@ export interface ChatHistoryItem {
   createdAt: string;
   updatedAt: string;
   status?: string;
+  appState?: string | null;
   parsedContent?: ParsedMessageContent;
 }

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 
-import { fetchChatHistories, markConversationMessagesRead } from "../chat-service";
-import { sendWhatsAppMessage } from "../whatsapp-service";
+import { fetchChatHistories, markConversationMessagesRead, saveN8nReplyMessage } from "../chat-service";
+import { sendWhatsAppMessage, type N8nMessageResponse } from "../whatsapp-service";
 
 export const chatRouter = Router();
 
@@ -67,7 +67,8 @@ chatRouter.post("/:sessionId/reply", async (request, response) => {
     const trimmedMessage = message.trim();
     const sentAt = new Date().toISOString();
 
-    await sendWhatsAppMessage({
+    console.log("[chat.ts] Sending message to n8n...");
+    const sendResult = await sendWhatsAppMessage({
       conversationId: normalizedSessionId,
       message: trimmedMessage,
       metadata: {
@@ -75,6 +76,45 @@ chatRouter.post("/:sessionId/reply", async (request, response) => {
         sentAt
       }
     });
+
+    console.log("[chat.ts] Message sent successfully. Response status:", sendResult.status);
+    console.log("[chat.ts] Response body:", JSON.stringify(sendResult.responseBody, null, 2));
+
+    // La respuesta de n8n es un array de objetos con wa_id y message
+    const responseArray = Array.isArray(sendResult.responseBody) ? sendResult.responseBody : [];
+    console.log("[chat.ts] Response is array:", Array.isArray(sendResult.responseBody));
+    console.log("[chat.ts] Array length:", responseArray.length);
+
+    if (responseArray.length > 0) {
+      const firstResponse = responseArray[0] as N8nMessageResponse | undefined;
+      console.log("[chat.ts] First response item:", JSON.stringify(firstResponse, null, 2));
+
+      const waId = firstResponse?.wa_id;
+      const messageText = firstResponse?.message;
+
+      console.log("[chat.ts] Extracted wa_id:", waId);
+      console.log("[chat.ts] Extracted message:", messageText);
+
+      if (waId && messageText) {
+        console.log("[chat.ts] Saving n8n reply message - wa_id:", waId, "message:", messageText);
+        try {
+          await saveN8nReplyMessage(waId, messageText, "fromReaderApp");
+          console.log("[chat.ts] ✓ Message saved to database successfully");
+        } catch (saveError) {
+          console.error("[chat.ts] ✗ Failed to save n8n reply message to database:", saveError);
+          // No fallar la respuesta si la BD falla, pero loguear el error
+        }
+      } else {
+        console.warn(
+          "[chat.ts] ✗ Missing required fields in n8n response - wa_id:",
+          waId,
+          "message:",
+          messageText
+        );
+      }
+    } else {
+      console.warn("[chat.ts] ✗ Response array is empty");
+    }
 
     const agentMessage = {
       id: randomUUID(),

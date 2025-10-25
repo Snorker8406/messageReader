@@ -17,7 +17,7 @@ export async function fetchChatHistories({
   sessionId,
   limit
 }: FetchChatHistoryOptions): Promise<ChatHistoryItem[]> {
-  const { data, error } = await buildQuery("id, session_id, message, status, created_at, updated_at", {
+  const { data, error } = await buildQuery("id, session_id, message, status, app_state, created_at, updated_at", {
     sessionId,
     limit
   });
@@ -48,6 +48,42 @@ export async function markConversationMessagesRead(sessionId: string): Promise<n
   }
 
   return data?.length ?? 0;
+}
+
+export async function saveN8nReplyMessage(
+  conversationId: string,
+  messageBody: string,
+  appState?: string | null
+): Promise<void> {
+  console.log("[chat-service] saveN8nReplyMessage called with:");
+  console.log("  - conversationId:", conversationId);
+  console.log("  - messageBody:", messageBody);
+  console.log("  - appState:", appState ?? "not provided");
+
+  const messagePayload = {
+    type: "ai",
+    content: messageBody
+  };
+  console.log("[chat-service] Constructed payload:", JSON.stringify(messagePayload));
+
+  console.log("[chat-service] Inserting into table:", TABLE_NAME);
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .insert([
+      {
+        session_id: conversationId,
+        message: messagePayload,
+        status: null,
+        app_state: appState ?? null
+      }
+    ]);
+
+  if (error) {
+    console.error("[chat-service] ✗ Supabase insert error:", error);
+    throw new Error(`Failed to save n8n reply message: ${error.message}`);
+  }
+
+  console.log("[chat-service] ✓ Insert successful. Data:", data);
 }
 
 function buildQuery(
@@ -88,6 +124,7 @@ function normalizeChatHistory(row: ChatHistoryRow): ChatHistoryItem {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     status: row.status,
+    appState: row.app_state ?? null,
     parsedContent
   };
 }

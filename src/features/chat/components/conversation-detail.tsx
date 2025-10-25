@@ -1,7 +1,7 @@
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { es } from "date-fns/locale";
 import { Bot, Loader2, Reply, Send, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,14 @@ export function ConversationDetail({ conversations = [], isLoading }: Conversati
   );
   const [messageInput, setMessageInput] = useState("");
   const sendMessageMutation = useSendMessage();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
+  }, [conversation?.messages]);
 
   const handleSendMessage = () => {
     if (!conversation || !messageInput.trim()) {
@@ -142,7 +150,9 @@ export function ConversationDetail({ conversations = [], isLoading }: Conversati
                         className={cn(
                           "max-w-[80%] rounded-2xl p-3 text-sm leading-relaxed shadow-sm",
                           isAgent
-                            ? "self-end bg-primary text-primary-foreground"
+                            ? message.appState === "fromReaderApp"
+                              ? "self-end bg-amber-500 text-white"
+                              : "self-end bg-primary text-primary-foreground"
                             : "self-start bg-muted text-muted-foreground"
                         )}
                       >
@@ -151,6 +161,7 @@ export function ConversationDetail({ conversations = [], isLoading }: Conversati
                     </li>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </ul>
             </ScrollArea>
           </CardContent>

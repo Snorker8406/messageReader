@@ -13,6 +13,28 @@ export interface SendWhatsAppMessageResult {
   responseBody: unknown;
 }
 
+export interface N8nWebhookResponse {
+  data?: {
+    message?: {
+      id?: string;
+      conversationId?: string;
+      authorId?: string;
+      authorType?: string;
+      body?: string;
+      sentAt?: string;
+      updatedAt?: string;
+      channel?: string;
+      deliveryStatus?: string;
+      status?: string;
+    };
+  };
+}
+
+export interface N8nMessageResponse {
+  wa_id?: string;
+  message?: string;
+}
+
 export async function sendWhatsAppMessage({
   conversationId,
   message,
@@ -46,13 +68,19 @@ export async function sendWhatsAppMessage({
     body: JSON.stringify(payload)
   });
 
+  console.log("[whatsapp-service] Response status:", response.status);
+
   const text = await response.text();
+  console.log("[whatsapp-service] Response body (raw):", text);
+
   let parsedBody: unknown = null;
 
   if (text) {
     try {
       parsedBody = JSON.parse(text) as unknown;
+      console.log("[whatsapp-service] Parsed response body:", JSON.stringify(parsedBody, null, 2));
     } catch {
+      console.warn("[whatsapp-service] Failed to parse response as JSON, treating as text");
       parsedBody = text;
     }
   }
@@ -70,6 +98,7 @@ export async function sendWhatsAppMessage({
     );
   }
 
+  console.log("[whatsapp-service] ✓ Request successful, returning result");
   return {
     status: response.status,
     responseBody: parsedBody

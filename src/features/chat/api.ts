@@ -16,6 +16,7 @@ interface ServerChatHistory {
   createdAt: string;
   updatedAt: string;
   status?: string;
+  appState?: string | null;
   message: {
     content?: unknown;
     [key: string]: unknown;
@@ -239,7 +240,8 @@ function toMessage(
     updatedAt: item.updatedAt ?? item.createdAt ?? new Date(Date.now() - index * 60_000).toISOString(),
     channel: "whatsapp",
     deliveryStatus: isAgent ? "delivered" : "read",
-    status: item.status ?? null
+    status: item.status ?? null,
+    appState: item.appState ?? null
   };
 }
 
@@ -248,7 +250,7 @@ function buildSubject(parsed: ServerChatHistory["parsedContent"], sessionId: str
     return `Pedido para ${parsed.cliente ?? sessionId}`;
   }
   if (parsed?.error && parsed.error.length > 0) {
-    return `Seguimiento pendiente (${parsed.error})`;
+    return `Seguimiento (${parsed.error})`;
   }
   return `Conversación ${parsed?.cliente ?? sessionId.slice(3)}`;
 }

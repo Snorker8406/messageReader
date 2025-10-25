@@ -192,7 +192,7 @@ docker ps
 ```bash
 # Encontrar qué usa el puerto
 sudo lsof -i :4000
-sudo lsof -i :3001
+sudo lsof -i :3002
 
 # Matar proceso
 sudo kill -9 <PID>

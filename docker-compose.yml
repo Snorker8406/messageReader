@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: messagereader-frontend
     ports:
-      - "3001:3001"
+      - "3002:3002"
     restart: unless-stopped
     networks:
       - messagereader-network
@@ -20,7 +20,7 @@ services:
     labels:
       - "com.example.description=MessageReader Frontend"
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/index.html"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/index.html"]
       interval: 30s
       timeout: 10s
       retries: 3

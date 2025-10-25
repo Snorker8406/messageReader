@@ -27,12 +27,12 @@ RUN npm install -g serve
 COPY --from=builder /app/dist ./dist
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/index.html', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD node -e "require('http').get('http://localhost:3002/index.html', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 # Start the app
 # serve is used to properly serve the React SPA with history API fallback
-CMD ["serve", "-s", "dist", "-l", "3001", "--no-clipboard"]
+CMD ["serve", "-s", "dist", "-l", "3002", "--no-clipboard"]

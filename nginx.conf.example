@@ -3,7 +3,7 @@
 # Then symlink to /etc/nginx/sites-enabled/cloudjeans-admin
 
 upstream messagereader_frontend {
-    server localhost:3001;
+    server localhost:3002;
 }
 
 upstream messagereader_backend {

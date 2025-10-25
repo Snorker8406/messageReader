@@ -16,7 +16,7 @@
 
 ### 2. **Orquestación**
 - ✅ `docker-compose.yml`
-  - Frontend en puerto 3001
+  - Frontend en puerto 3002
   - Backend en puerto 4000
   - Red interna `messagereader-network`
   - Variables de entorno configuradas
@@ -79,7 +79,7 @@ https://cloudjeans-admin.ddns.net/
 
 ### Puertos Internos
 ```
-Frontend: 3001 (servido vía Nginx puerto 443)
+Frontend: 3002 (servido vía Nginx puerto 443)
 Backend:  4000 (servido vía Nginx puerto 443/api)
 ```
 

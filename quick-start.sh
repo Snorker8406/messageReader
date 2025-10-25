@@ -94,7 +94,7 @@ else
     echo -e "${YELLOW}⚠ Backend API not ready yet${NC}"
 fi
 
-if curl -s http://localhost:3001/ > /dev/null; then
+if curl -s http://localhost:3002/ > /dev/null; then
     echo -e "${GREEN}✓ Frontend responding${NC}"
 else
     echo -e "${YELLOW}⚠ Frontend not ready yet${NC}"

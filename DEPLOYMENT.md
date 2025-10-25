@@ -221,7 +221,7 @@ curl -s http://localhost:4000/api/health | jq .
 
 ### 2. Probar frontend
 ```bash
-curl -s http://localhost:3001/ | head -20
+curl -s http://localhost:3002/ | head -20
 # Debe retornar HTML de React
 ```
 
@@ -380,7 +380,7 @@ sudo docker-compose build --no-cache
 ```bash
 # Encontrar qué proceso usa el puerto
 sudo lsof -i :4000
-sudo lsof -i :3001
+sudo lsof -i :3002
 
 # Matar el proceso
 sudo kill -9 <PID>

@@ -1,0 +1,46 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (including dev dependencies for TypeScript compilation)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN npm run server:build
+
+# Stage 2: Runtime
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dumb-init to handle signals properly
+RUN apk add --no-cache dumb-init
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built server files
+COPY --from=builder /app/server/dist ./server/dist
+
+# Expose port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Use dumb-init to properly handle signals
+ENTRYPOINT ["/usr/sbin/dumb-init", "--"]
+
+# Start the app
+CMD ["node", "server/dist/index.js"]

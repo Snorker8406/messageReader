@@ -2,6 +2,8 @@
 
 > Bandeja ligera para revisar y gestionar conversaciones de chat multicanal.
 
+**📦 Estado:** Production-ready con soporte para Docker deployment en VPS
+
 ## Stack
 
 - [Vite](https://vitejs.dev/) + React 19 (TypeScript)
@@ -136,3 +138,44 @@ Las respuestas incluyen el JSON original almacenado en Supabase y un bloque `par
 - Conectar endpoints reales del chat reemplazando los mocks de `src/features/chat/mock-data.ts`
 - Ajustar prioridades/estados según tu dominio de negocio
 - Añadir recuperación de contraseña, verificación de correo u otros mecanismos de seguridad avanzada
+
+## 🚀 Deployment en Docker
+
+Esta aplicación está lista para ser desplegada en Docker en un VPS. Incluye:
+
+### Archivos de configuración:
+- `Dockerfile.frontend` - Build optimizado para React + Vite
+- `Dockerfile.backend` - Build optimizado para Express + Node
+- `docker-compose.yml` - Orquestación de servicios
+- `nginx.conf.example` - Configuración de reverse proxy
+- `.env.production.example` - Template de variables de entorno
+
+### Guías:
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Guía completa paso a paso
+- `.github/workflows/deploy.yml` - CI/CD automático con GitHub Actions
+
+### Quick Start (VPS):
+```bash
+# 1. Clonar repo
+git clone <repo-url>
+cd messageReader
+
+# 2. Preparar variables de entorno
+cp .env.production.example /var/messagereader/env/.env.production
+# Editar con credenciales reales
+
+# 3. Ejecutar deployment
+chmod +x quick-start.sh
+./quick-start.sh
+```
+
+### Características del deployment:
+- ✅ Contenedores separados para frontend y backend
+- ✅ Reverse proxy con Nginx en puerto 443 (HTTPS)
+- ✅ Health checks automáticos
+- ✅ Multi-stage Docker builds para tamaños optimizados
+- ✅ Variables de entorno seguras
+- ✅ CI/CD automático con GitHub Actions
+- ✅ Logs centralizados y monitoreo
+
+**Para detalles completos, ver [DEPLOYMENT.md](./DEPLOYMENT.md)**

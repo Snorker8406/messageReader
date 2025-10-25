@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  # Frontend React App
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: messagereader-frontend
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    networks:
+      - messagereader-network
+    environment:
+      - VITE_API_URL=http://localhost:4000
+      - VITE_WHATSAPP_WEBHOOK_URL=https://n8n-boutique.duckdns.org/webhook/send-whatsapp
+      - VITE_WHATSAPP_WEBHOOK_USER=MessageReaderApp
+      - VITE_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
+    labels:
+      - "com.example.description=MessageReader Frontend"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/index.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Backend Express API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: messagereader-backend
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    networks:
+      - messagereader-network
+    environment:
+      # Node environment
+      - NODE_ENV=production
+      
+      # Server configuration
+      - PORT=4000
+      - CLIENT_APP_URL=https://cloudjeans-admin.ddns.net/
+      
+      # Supabase
+      - NEXT_PUBLIC_SUPABASE_URL=https://okugfpybiirktqjxyddo.supabase.co
+      - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_kl2G-ofCIyKd5RfZBA_vRA_mauXx4KU
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_DURATION_DAYS=7
+      - SESSION_COOKIE_NAME=mr_session
+      
+      # N8N Webhook
+      - N8N_WHATSAPP_WEBHOOK_URL=https://n8n-boutique.duckdns.org/webhook/send-whatsapp
+      - N8N_WHATSAPP_WEBHOOK_USER=MessageReaderApp
+      - N8N_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
+    labels:
+      - "com.example.description=MessageReader Backend API"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - frontend
+
+networks:
+  messagereader-network:
+    driver: bridge

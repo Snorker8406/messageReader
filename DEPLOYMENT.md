@@ -5,7 +5,13 @@
 2. [Preparación del VPS](#preparación-del-vps)
 3. [Configuración de variables de entorno](#configuración-de-variables-de-entorno)
 4. [Configuración de Nginx](#configuración-de-nginx)
-5. [Deploy de los contenedores](#deploy-de-los-contenedores)
+5. [Deploy de los contenedores](#deploy-de-los-contene### 3. Agregar secrets a GitHub
+Ve a: `Settings → Secrets and variables → Actions`
+
+**Agregar los siguientes secrets:**
+- `VPS_HOST`: IP o dominio de la VPS
+- `VPS_USER`: usuario SSH (ej: snorker84@semaforo-bot, ubuntu, root, etc)
+- `VPS_SSH_KEY`: contenido de tu clave SSH privada
 6. [Configuración de SSL/TLS](#configuración-de-ssltls)
 7. [Monitoreo y mantenimiento](#monitoreo-y-mantenimiento)
 8. [CI/CD con GitHub Actions](#cicd-con-github-actions)
@@ -17,7 +23,7 @@
 
 - VPS en Google Cloud con Ubuntu 20.04+ o similar
 - Docker instalado (`docker --version` debe funcionar)
-- Docker Compose instalado (`docker-compose --version`)
+- Docker Compose instalado (`docker compose version`)
 - Nginx instalado y configurado
 - N8N en un contenedor separado (ya existe)
 - Dominio configurado: `https://cloudjeans-admin.ddns.net/`
@@ -26,7 +32,7 @@
 **Verificar instalación:**
 ```bash
 docker --version
-docker-compose --version
+docker compose version
 nginx -v
 ```
 
@@ -36,7 +42,7 @@ nginx -v
 
 ### 1. Clonar el repositorio
 ```bash
-cd /home/ubuntu  # o tu directorio preferido
+cd /home/$USER  # o tu directorio preferido
 git clone https://github.com/Snorker8406/messageReader.git
 cd messageReader
 ```
@@ -49,7 +55,7 @@ cd /var/messagereader/env
 
 ### 3. Configurar permisos
 ```bash
-sudo chown -R ubuntu:ubuntu /var/messagereader
+sudo chown -R $USER:$USER /var/messagereader
 chmod 700 /var/messagereader/env
 ```
 
@@ -59,7 +65,7 @@ chmod 700 /var/messagereader/env
 
 ### 1. Copiar archivo de ejemplo
 ```bash
-cp /home/ubuntu/messageReader/.env.production.example /var/messagereader/env/.env.production
+cp /home/$USER/messageReader/.env.production.example /var/messagereader/env/.env.production
 ```
 
 ### 2. Editar con variables reales
@@ -91,7 +97,7 @@ cat /var/messagereader/env/.env.production | grep "here\|your_"
 
 ### 1. Copiar configuración
 ```bash
-sudo cp /home/ubuntu/messageReader/nginx.conf.example /etc/nginx/sites-available/cloudjeans-admin
+sudo cp /home/$USER/messageReader/nginx.conf.example /etc/nginx/sites-available/cloudjeans-admin
 ```
 
 ### 2. Editar si es necesario
@@ -162,7 +168,7 @@ sudo systemctl status certbot.timer
 
 ### 1. Preparar archivo docker-compose.yml
 ```bash
-cd /home/ubuntu/messageReader
+cd /home/$USER/messageReader
 
 # Cargar variables de entorno desde el archivo
 export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
@@ -170,14 +176,14 @@ export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
 
 ### 2. Construir imágenes
 ```bash
-sudo docker-compose build
+sudo docker compose build
 ```
 
 Esto puede tomar 5-10 minutos dependiendo de la velocidad de internet.
 
 ### 3. Iniciar contenedores en background
 ```bash
-sudo docker-compose up -d
+sudo docker compose up -d
 ```
 
 **Salida esperada:**
@@ -189,7 +195,7 @@ sudo docker-compose up -d
 
 ### 4. Verificar estado
 ```bash
-sudo docker-compose ps
+sudo docker compose ps
 
 # Debe mostrar ambos contenedores con estado "Up"
 ```
@@ -197,16 +203,16 @@ sudo docker-compose ps
 ### 5. Ver logs
 ```bash
 # Logs de ambos contenedores
-sudo docker-compose logs -f
+sudo docker compose logs -f
 
 # Solo frontend
-sudo docker-compose logs -f frontend
+sudo docker compose logs -f frontend
 
 # Solo backend
-sudo docker-compose logs -f backend
+sudo docker compose logs -f backend
 
 # Últimas 50 líneas
-sudo docker-compose logs --tail=50
+sudo docker compose logs --tail=50
 ```
 
 ---
@@ -246,24 +252,24 @@ sudo docker stats
 
 ### Ver logs en tiempo real
 ```bash
-sudo docker-compose logs -f
+sudo docker compose logs -f
 ```
 
 ### Reiniciar un contenedor
 ```bash
-sudo docker-compose restart backend
+sudo docker compose restart backend
 # o
-sudo docker-compose restart frontend
+sudo docker compose restart frontend
 ```
 
 ### Detener los contenedores
 ```bash
-sudo docker-compose down
+sudo docker compose down
 ```
 
 ### Detener y eliminar todo (incluyendo datos)
 ```bash
-sudo docker-compose down -v
+sudo docker compose down -v
 ```
 
 ### Ver directorios de datos
@@ -273,7 +279,7 @@ sudo docker inspect messagereader-backend | grep -i volume
 
 ### Realizar backup de logs
 ```bash
-sudo docker-compose logs > backup_logs_$(date +%Y%m%d_%H%M%S).log
+sudo docker compose logs > backup_logs_$(date +%Y%m%d_%H%M%S).log
 ```
 
 ---
@@ -282,23 +288,23 @@ sudo docker-compose logs > backup_logs_$(date +%Y%m%d_%H%M%S).log
 
 ### 1. Descargar cambios
 ```bash
-cd /home/ubuntu/messageReader
+cd /home/$USER/messageReader
 git pull origin main
 ```
 
 ### 2. Reconstruir imágenes
 ```bash
-sudo docker-compose build --no-cache
+sudo docker compose build --no-cache
 ```
 
 ### 3. Reiniciar contenedores
 ```bash
-sudo docker-compose up -d
+sudo docker compose up -d
 ```
 
 ### 4. Verificar funcionamiento
 ```bash
-sudo docker-compose logs -f
+sudo docker compose logs -f
 curl -s https://cloudjeans-admin.ddns.net/api/health
 ```
 
@@ -336,12 +342,12 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/ubuntu/messageReader
+            cd /home/$USER/messageReader
             git pull origin main
             export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
-            sudo docker-compose build
-            sudo docker-compose up -d
-            sudo docker-compose logs --tail=20
+            sudo docker compose build
+            sudo docker compose up -d
+            sudo docker compose logs --tail=20
 EOF
 ```
 
@@ -367,13 +373,13 @@ cat ~/.ssh/vps_key.pub  # Agregar a ~/.ssh/authorized_keys en la VPS
 ### Contenedor no inicia
 ```bash
 # Ver logs detallados
-sudo docker-compose logs backend
+sudo docker compose logs backend
 
 # Verificar variables de entorno
-sudo docker-compose config | grep -A 50 "backend:"
+sudo docker compose config | grep -A 50 "backend:"
 
 # Reconstruir sin cache
-sudo docker-compose build --no-cache
+sudo docker compose build --no-cache
 ```
 
 ### Puerto ya en uso
@@ -394,7 +400,7 @@ sudo kill -9 <PID>
 curl -s https://okugfpybiirktqjxyddo.supabase.co/rest/v1/
 
 # Verificar credenciales en logs
-sudo docker-compose logs backend | grep -i supabase
+sudo docker compose logs backend | grep -i supabase
 ```
 
 ### Nginx no redirige correctamente
@@ -434,7 +440,7 @@ docker ps
 
 ```bash
 # Ver todo
-sudo docker-compose ps -a
+sudo docker compose ps -a
 
 # Eliminar contenedores parados
 sudo docker container prune
@@ -443,10 +449,10 @@ sudo docker container prune
 sudo docker image prune -a
 
 # Ver logs de un servicio
-sudo docker-compose logs --tail=100 -f backend
+sudo docker compose logs --tail=100 -f backend
 
 # Ejecutar comando en contenedor
-sudo docker-compose exec backend npm run lint
+sudo docker compose exec backend npm run lint
 
 # Copiar archivo desde contenedor
 sudo docker cp messagereader-backend:/app/server/dist ./backup_dist

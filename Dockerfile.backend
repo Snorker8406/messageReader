@@ -12,8 +12,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build TypeScript
-RUN npm run server:build
+# Build TypeScript - with verbose output for debugging
+RUN npm run server:build && ls -la server/dist/
 
 # Stage 2: Runtime
 FROM node:20-alpine

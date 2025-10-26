@@ -36,9 +36,9 @@ chmod +x deploy.sh
 
 ### 2.1 Conectar a la VPS
 ```bash
-ssh -p 22 ubuntu@YOUR_VPS_IP
+ssh -p 22 $USER@YOUR_VPS_IP
 # o si tienes dominio
-ssh ubuntu@cloudjeans-admin.ddns.net
+ssh $USER@cloudjeans-admin.ddns.net
 ```
 
 ### 2.2 Clonar el repositorio
@@ -87,13 +87,13 @@ sudo certbot certonly --nginx -d cloudjeans-admin.ddns.net
 export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
 
 # Construir
-sudo docker-compose build
+sudo docker compose build
 
 # Iniciar
-sudo docker-compose up -d
+sudo docker compose up -d
 
 # Ver estado
-sudo docker-compose ps
+sudo docker compose ps
 ```
 
 ## Paso 3: Verificación
@@ -117,9 +117,9 @@ https://cloudjeans-admin.ddns.net/
 
 ### 3.3 Ver logs
 ```bash
-sudo docker-compose logs -f
-sudo docker-compose logs -f backend
-sudo docker-compose logs -f frontend
+sudo docker compose logs -f
+sudo docker compose logs -f backend
+sudo docker compose logs -f frontend
 ```
 
 ## Paso 4: CI/CD con GitHub Actions
@@ -144,7 +144,7 @@ Ve a: **Settings → Secrets and variables → Actions**
 
 Agrega estos secrets:
 - `VPS_HOST`: Tu IP o dominio (ej: cloudjeans-admin.ddns.net)
-- `VPS_USER`: ubuntu
+- `VPS_USER`: Tu usuario SSH (ej: snorker84@semaforo-bot, ubuntu, root, etc)
 - `VPS_SSH_KEY`: Contenido de ~/.ssh/vps_key (privada)
 - `VPS_SSH_PORT`: 22 (opcional)
 
@@ -162,11 +162,11 @@ git push origin main
 ### Los contenedores no inician
 ```bash
 # Ver logs detallados
-sudo docker-compose logs backend
+sudo docker compose logs backend
 
 # Reconstruir sin caché
-sudo docker-compose build --no-cache
-sudo docker-compose up -d
+sudo docker compose build --no-cache
+sudo docker compose up -d
 ```
 
 ### Nginx no responde

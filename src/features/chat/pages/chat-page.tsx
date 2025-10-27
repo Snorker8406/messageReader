@@ -28,7 +28,7 @@ export function ChatPage() {
       <header className="border-b bg-card">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Message Reader</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Message Reader Cloud Jeans</h1>
             <p className="text-sm text-muted-foreground">
               Revisa y gestiona conversaciones multicanal.
             </p>

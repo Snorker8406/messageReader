@@ -172,18 +172,23 @@ cd /home/$USER/messageReader
 
 # Cargar variables de entorno desde el archivo
 export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
+
+# Verificar que se cargaron
+echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"
+echo "JWT_SECRET=$JWT_SECRET"
 ```
 
 ### 2. Construir imágenes
 ```bash
-sudo docker compose build
+# ⚠️ IMPORTANTE: Usa "sudo -E" para que sudo herede las variables de entorno
+sudo -E docker compose build
 ```
 
 Esto puede tomar 5-10 minutos dependiendo de la velocidad de internet.
 
 ### 3. Iniciar contenedores en background
 ```bash
-sudo docker compose up -d
+sudo -E docker compose up -d
 ```
 
 **Salida esperada:**
@@ -203,16 +208,16 @@ sudo docker compose ps
 ### 5. Ver logs
 ```bash
 # Logs de ambos contenedores
-sudo docker compose logs -f
+sudo -E docker compose logs -f
 
 # Solo frontend
-sudo docker compose logs -f frontend
+sudo -E docker compose logs -f frontend
 
 # Solo backend
-sudo docker compose logs -f backend
+sudo -E docker compose logs -f backend
 
 # Últimas 50 líneas
-sudo docker compose logs --tail=50
+sudo -E docker compose logs --tail=50
 ```
 
 ---
@@ -252,24 +257,24 @@ sudo docker stats
 
 ### Ver logs en tiempo real
 ```bash
-sudo docker compose logs -f
+sudo -E docker compose logs -f
 ```
 
 ### Reiniciar un contenedor
 ```bash
-sudo docker compose restart backend
+sudo -E docker compose restart backend
 # o
-sudo docker compose restart frontend
+sudo -E docker compose restart frontend
 ```
 
 ### Detener los contenedores
 ```bash
-sudo docker compose down
+sudo -E docker compose down
 ```
 
 ### Detener y eliminar todo (incluyendo datos)
 ```bash
-sudo docker compose down -v
+sudo -E docker compose down -v
 ```
 
 ### Ver directorios de datos
@@ -279,7 +284,7 @@ sudo docker inspect messagereader-backend | grep -i volume
 
 ### Realizar backup de logs
 ```bash
-sudo docker compose logs > backup_logs_$(date +%Y%m%d_%H%M%S).log
+sudo -E docker compose logs > backup_logs_$(date +%Y%m%d_%H%M%S).log
 ```
 
 ---
@@ -294,17 +299,17 @@ git pull origin main
 
 ### 2. Reconstruir imágenes
 ```bash
-sudo docker compose build --no-cache
+sudo -E docker compose build --no-cache
 ```
 
 ### 3. Reiniciar contenedores
 ```bash
-sudo docker compose up -d
+sudo -E docker compose up -d
 ```
 
 ### 4. Verificar funcionamiento
 ```bash
-sudo docker compose logs -f
+sudo -E docker compose logs -f
 curl -s https://cloudjeans-admin.ddns.net/api/health
 ```
 
@@ -345,9 +350,9 @@ jobs:
             cd /home/$USER/messageReader
             git pull origin main
             export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
-            sudo docker compose build
-            sudo docker compose up -d
-            sudo docker compose logs --tail=20
+            sudo -E docker compose build
+            sudo -E docker compose up -d
+            sudo -E docker compose logs --tail=20
 EOF
 ```
 
@@ -373,13 +378,14 @@ cat ~/.ssh/vps_key.pub  # Agregar a ~/.ssh/authorized_keys en la VPS
 ### Contenedor no inicia
 ```bash
 # Ver logs detallados
-sudo docker compose logs backend
+sudo -E docker compose logs backend
 
 # Verificar variables de entorno
-sudo docker compose config | grep -A 50 "backend:"
+export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
+sudo -E docker compose config | grep -A 50 "backend:"
 
 # Reconstruir sin cache
-sudo docker compose build --no-cache
+sudo -E docker compose build --no-cache
 ```
 
 ### Puerto ya en uso
@@ -449,10 +455,10 @@ sudo docker container prune
 sudo docker image prune -a
 
 # Ver logs de un servicio
-sudo docker compose logs --tail=100 -f backend
+sudo -E docker compose logs --tail=100 -f backend
 
 # Ejecutar comando en contenedor
-sudo docker compose exec backend npm run lint
+sudo -E docker compose exec backend npm run lint
 
 # Copiar archivo desde contenedor
 sudo docker cp messagereader-backend:/app/server/dist ./backup_dist

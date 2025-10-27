@@ -134,14 +134,19 @@ cd /home/$USER/messageReader
 # Cargar variables de entorno
 export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
 
+# Verificar que se cargaron correctamente
+echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"
+echo "JWT_SECRET=$JWT_SECRET"
+
 # Detener contenedores previos (si existen)
-sudo docker compose down
+# ⚠️ IMPORTANTE: Usa "sudo -E" para que sudo herede las variables de entorno
+sudo -E docker compose down
 
 # Construir imágenes (toma 5-10 minutos)
-sudo docker compose build
+sudo -E docker compose build
 
 # Iniciar contenedores
-sudo docker compose up -d
+sudo -E docker compose up -d
 
 # Verificar estado
 sudo docker compose ps
@@ -179,13 +184,13 @@ curl -s https://cloudjeans-admin.ddns.net/
 ## **PASO 8: Ver logs en tiempo real**
 ```bash
 # Todos los logs
-sudo docker compose logs -f
+sudo -E docker compose logs -f
 
 # Solo backend
-sudo docker compose logs -f backend
+sudo -E docker compose logs -f backend
 
 # Solo frontend
-sudo docker compose logs -f frontend
+sudo -E docker compose logs -f frontend
 ```
 
 ---

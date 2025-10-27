@@ -58,7 +58,7 @@ jobs:
             echo "=== Starting MessageReader Deployment ==="
             echo "Time: $(date)"
             
-            cd /home/ubuntu/messageReader
+            cd /home/$USER/messageReader
             
             echo "=== Pulling latest code ==="
             git pull origin main
@@ -66,28 +66,32 @@ jobs:
             echo "=== Loading environment variables ==="
             export $(cat /var/messagereader/env/.env.production | grep -v '^#' | xargs)
             
+            echo "=== Verifying environment variables ==="
+            echo "CLIENT_APP_URL=$CLIENT_APP_URL"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:0:20}..."
+            
             echo "=== Building Docker images ==="
-            sudo docker-compose build
+            sudo -E docker compose build
             
             echo "=== Stopping old containers ==="
-            sudo docker-compose down
+            sudo -E docker compose down
             
             echo "=== Starting new containers ==="
-            sudo docker-compose up -d
+            sudo -E docker compose up -d
             
             echo "=== Waiting for services to be healthy ==="
-            sleep 10
+            sleep 15
             
             echo "=== Checking container status ==="
-            sudo docker-compose ps
+            sudo docker compose ps
             
             echo "=== Displaying recent logs ==="
-            sudo docker-compose logs --tail=20
+            sudo -E docker compose logs --tail=30
             
             echo "=== Testing backend health ==="
-            curl -s http://localhost:4000/api/health || echo "Health check pending..."
+            curl -s http://localhost:4000/api/health && echo "" || echo "Health check pending..."
             
-            echo "=== Deployment completed ==="
+            echo "=== Deployment completed successfully ==="
 
       - name: Notify deployment success
         if: success()

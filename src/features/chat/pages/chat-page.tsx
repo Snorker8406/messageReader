@@ -30,7 +30,7 @@ export function ChatPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Message Reader</h1>
             <p className="text-sm text-muted-foreground">
-              Revisa y gestiona conversaciones multicanal en un panel ligero.
+              Revisa y gestiona conversaciones multicanal.
             </p>
           </div>
           <div className="flex items-center gap-3">

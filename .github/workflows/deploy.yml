@@ -68,9 +68,10 @@ jobs:
             
             echo "=== Verifying environment variables ==="
             echo "CLIENT_APP_URL=$CLIENT_APP_URL"
+            echo "VITE_API_URL=$VITE_API_URL"
             echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:0:20}..."
             
-            echo "=== Building Docker images ==="
+            echo "=== Building Docker images with environment variables ==="
             sudo -E docker compose build
             
             echo "=== Stopping old containers ==="

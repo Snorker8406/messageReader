@@ -15,18 +15,33 @@ const allowedOrigins = env.clientUrl
   .map((value) => value.trim())
   .filter((value) => value.length > 0);
 
+// Log allowed origins para debugging
+console.log("[CORS] Allowed origins:", allowedOrigins);
+
 app.use(
   cors({
     origin(origin, callback) {
+      // Si no hay origin (requests desde el mismo servidor), permitir
       if (!origin) {
         return callback(null, true);
       }
 
+      // Log del origin recibido
+      console.log("[CORS] Request origin:", origin);
+
+      // Permitir si está en la lista
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      // En desarrollo, permitir localhost
+      if (process.env.NODE_ENV === "development" && origin.includes("localhost")) {
+        return callback(null, true);
+      }
+
+      const error = `Origin ${origin} not allowed by CORS. Allowed: ${allowedOrigins.join(", ")}`;
+      console.error("[CORS] Error:", error);
+      return callback(new Error(error));
     },
     credentials: true
   })

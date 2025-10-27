@@ -25,7 +25,8 @@ export const env = {
   port: Number(process.env.PORT ?? 4000),
   supabaseUrl: required("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseKey: required("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY"),
-  clientUrl: required("CLIENT_APP_URL"),
+  // Remover slash final de CLIENT_APP_URL para CORS consistency
+  clientUrl: required("CLIENT_APP_URL").replace(/\/$/, ""),
   jwtSecret: required("JWT_SECRET"),
   sessionDurationDays: parsePositiveNumber(process.env.SESSION_DURATION_DAYS, 7),
   sessionCookieName: process.env.SESSION_COOKIE_NAME ?? "mr_session",

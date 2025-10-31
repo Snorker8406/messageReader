@@ -1,12 +1,14 @@
 import {
   API_BASE_URL,
+  IMAGE_ANALYSIS_START_URL,
   WHATSAPP_WEBHOOK_PASSWORD,
   WHATSAPP_WEBHOOK_URL,
   WHATSAPP_WEBHOOK_USER,
   readApiError
 } from "@/lib/api";
+import type { User } from "@/features/auth/types";
 import { loadMockConversations, simulateSendMessage } from "./mock-data";
-import type { Conversation, ConversationWithMessages, Message } from "./types";
+import type { CatalogMetadata, Conversation, ConversationWithMessages, Message } from "./types";
 
 interface ServerChatHistory {
   id: number;
@@ -60,6 +62,23 @@ export async function fetchConversations(): Promise<ConversationWithMessages[]> 
     console.warn("Falling back to mock conversations", error);
     return sortConversations(await loadMockConversations());
   }
+}
+
+export async function fetchLatestCatalogMetadata(): Promise<CatalogMetadata | null> {
+  const response = await fetch(`${API_BASE_URL}/api/catalog-metadata/latest`, {
+    credentials: "include"
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as { data?: CatalogMetadata | null };
+  return payload.data ?? null;
 }
 
 export async function sendAgentReply(
@@ -160,6 +179,38 @@ export async function markConversationAsRead(conversationId: string): Promise<nu
 
   const payload = (await response.json()) as { data?: { updatedCount?: number } };
   return payload.data?.updatedCount ?? 0;
+}
+
+export async function triggerCatalogGeneration(user: Pick<User, "id" | "email" | "fullName">): Promise<void> {
+  if (!IMAGE_ANALYSIS_START_URL) {
+    throw new Error("La URL para iniciar la generación del catálogo no está configurada.");
+  }
+
+  const headers: Record<string, string> = {};
+  if (WHATSAPP_WEBHOOK_USER && WHATSAPP_WEBHOOK_PASSWORD) {
+    headers.Authorization = `Basic ${encodeBasicAuth(
+      WHATSAPP_WEBHOOK_USER,
+      WHATSAPP_WEBHOOK_PASSWORD
+    )}`;
+  }
+
+  headers["Content-Type"] = "application/json";
+
+  const response = await fetch(IMAGE_ANALYSIS_START_URL, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`No se pudo iniciar la generación del catálogo (estado ${response.status}).`);
+  }
 }
 
 function fromServerHistories(histories: ServerChatHistory[]): ConversationWithMessages[] {

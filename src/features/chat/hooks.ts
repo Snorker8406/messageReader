@@ -9,11 +9,19 @@ import {
 
 import { useAuthStore } from "@/features/auth/store";
 
-import { fetchConversations, markConversationAsRead, sendAgentReply } from "./api";
+import {
+  fetchConversations,
+  fetchLatestCatalogMetadata,
+  markConversationAsRead,
+  sendAgentReply,
+  triggerCatalogGeneration
+} from "./api";
+import type { User } from "../auth/types";
 import type { ConversationWithMessages, Message } from "./types";
 import { useChatStore } from "./store";
 
 export const conversationsKey = ["conversations"] as const;
+export const catalogMetadataKey = ["catalog-metadata", "latest"] as const;
 
 export function useConversations() {
   const queryClient = useQueryClient();
@@ -24,7 +32,8 @@ export function useConversations() {
   const { data, ...rest } = useQuery({
     queryKey: conversationsKey,
     queryFn: fetchConversations,
-    enabled: isAuthenticated
+    enabled: isAuthenticated,
+    refetchInterval: 6000
   });
   const { mutate: markAsRead, isPending: isMarkingRead } = useMutation({
     mutationFn: (conversationId: string) => markConversationAsRead(conversationId),
@@ -66,6 +75,18 @@ export function useConversations() {
   return { data, ...rest };
 }
 
+export function useCatalogMetadata() {
+  const authStatus = useAuthStore((state) => state.status);
+  const isAuthenticated = authStatus === "authenticated";
+  return useQuery({
+    queryKey: catalogMetadataKey,
+    queryFn: fetchLatestCatalogMetadata,
+    enabled: isAuthenticated,
+    refetchInterval: isAuthenticated ? 6000 : false,
+    staleTime: 5000
+  });
+}
+
 export function useSendMessage(): UseMutationResult<
   Message,
   Error,
@@ -76,6 +97,16 @@ export function useSendMessage(): UseMutationResult<
     mutationFn: ({ conversationId, body }) => sendAgentReply(conversationId, body),
     onSuccess: (message) => {
       updateConversationMessages(queryClient, message);
+    }
+  });
+}
+
+export function useTriggerCatalogGeneration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (user: Pick<User, "id" | "email" | "fullName">) => triggerCatalogGeneration(user),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: catalogMetadataKey });
     }
   });
 }

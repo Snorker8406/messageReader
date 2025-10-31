@@ -84,6 +84,7 @@ N8N_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
 VITE_WHATSAPP_WEBHOOK_URL=https://n8n-boutique.duckdns.org/webhook-test/send-whatsapp
 VITE_WHATSAPP_WEBHOOK_USER=MessageReaderApp
 VITE_WHATSAPP_WEBHOOK_PASSWORD=Snorker84*
+VITE_IMAGE_ANALYSIS_START_URL=https://semaforo-n8n.ddns.net/webhook-test/start-image-analysis
 ```
 
 Notas:
@@ -95,6 +96,7 @@ Notas:
 - `N8N_WHATSAPP_WEBHOOK_USER` y `N8N_WHATSAPP_WEBHOOK_PASSWORD` son opcionales; cuando se definen, el backend añadirá cabeceras Basic Auth en los reintentos hacia n8n.
 - `VITE_WHATSAPP_WEBHOOK_URL` permite que el cliente (browser) envíe directamente al webhook; si no se define, se usará el backend como proxy.
 - `VITE_WHATSAPP_WEBHOOK_USER` y `VITE_WHATSAPP_WEBHOOK_PASSWORD` habilitan Basic Auth también desde el cliente; si faltan, el navegador omitirá la cabecera y dependerá del backend.
+- `VITE_IMAGE_ANALYSIS_START_URL` apunta al webhook que dispara la generación del nuevo catálogo; debe exponer un `GET` que responda 200 para confirmar el inicio del proceso.
 - El cliente web leerá opcionalmente `VITE_API_URL`; si no se define, apuntará a `http://localhost:4000`.
 
 En Supabase, crea la tabla `app_users` para respaldar el registro e inicio de sesión:
@@ -130,6 +132,7 @@ CREATE TABLE public.app_users (
 	- Parámetros opcionales: `sessionId` (filtra por número/canal), `limit`.
 - `GET /api/chat-histories/:sessionId` — historial del identificador específico (requiere sesión válida).
 - `POST /api/chat-histories/:sessionId/reply` — envía una respuesta al webhook configurado (`message` en el body) y devuelve un mensaje sintético para optimizar la UI.
+- `GET /api/catalog-metadata/latest` — devuelve el registro más reciente del catálogo PDF junto con el usuario que lo generó (requiere sesión válida).
 
 Las respuestas incluyen el JSON original almacenado en Supabase y un bloque `parsedContent` con los campos resumidos (`isPedido`, `pedido`, `volumen`, etc.) que la app usa para armar conversaciones.
 

@@ -1,3 +1,5 @@
+import type { User } from "@/features/auth/types";
+
 export type Channel = "whatsapp" | "messenger" | "email" | "sms";
 export type ConversationStatus = "open" | "pending" | "closed" | "snoozed";
 export type Priority = "low" | "normal" | "high" | "urgent";
@@ -41,4 +43,17 @@ export interface Conversation {
 
 export interface ConversationWithMessages extends Conversation {
   messages: Message[];
+}
+
+export type CatalogMetadataUser = Pick<
+  User,
+  "id" | "email" | "fullName" | "role" | "isActive" | "createdAt" | "updatedAt"
+>;
+
+export interface CatalogMetadata {
+  id: number;
+  createdAt: string;
+  link: string | null;
+  userId: string | null;
+  user: CatalogMetadataUser | null;
 }

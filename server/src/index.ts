@@ -7,6 +7,7 @@ import { env } from "./env";
 import { requireAuth } from "./middleware/authenticate";
 import { authRouter } from "./routes/auth";
 import { chatRouter } from "./routes/chat";
+import { catalogRouter } from "./routes/catalog";
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.get("/api/health", (_request, response) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/chat-histories", requireAuth, chatRouter);
+app.use("/api/catalog-metadata", requireAuth, catalogRouter);
 
 app.use((error: unknown, _request: Request, response: Response, next: NextFunction) => {
   if (error instanceof Error && /not allowed by CORS/i.test(error.message)) {

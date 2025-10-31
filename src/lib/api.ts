@@ -22,6 +22,9 @@ export const WHATSAPP_WEBHOOK_USER = optionalString(import.meta.env.VITE_WHATSAP
 export const WHATSAPP_WEBHOOK_PASSWORD = optionalString(
   import.meta.env.VITE_WHATSAPP_WEBHOOK_PASSWORD ?? undefined
 );
+export const IMAGE_ANALYSIS_START_URL = optionalString(
+  import.meta.env.VITE_IMAGE_ANALYSIS_START_URL ?? undefined
+);
 
 export interface ApiErrorResponse {
   error?: string;

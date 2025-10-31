@@ -21,6 +21,21 @@ export interface AppUser {
 
 export type AppUserRecord = Omit<AppUserRow, "password_hash">;
 
+export interface PdfCatalogMetadataRow {
+  id: number;
+  created_at: string;
+  user_id: string | null;
+  link: string | null;
+}
+
+export interface PdfCatalogMetadata {
+  id: number;
+  createdAt: string;
+  userId: string | null;
+  link: string | null;
+  user: AppUser | null;
+}
+
 export interface AuthTokenPayload {
   sub: string;
   email: string;
